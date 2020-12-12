@@ -1,0 +1,55 @@
+import _ from 'lodash';
+
+import jsonPlaceholder from '../api/jsonPlaceholder';
+
+export const fetchPostsAndUsers = () => async (dispatch, getState) => {
+  await dispatch(fetchPosts());
+
+  // Without Lodash Chain
+  // const userIds = _.uniq(_.map(getState().posts, 'userId'));
+  // userIds.forEach(id => dispatch(fetchUser(id)));
+
+  // Lodash Chain
+  _.chain(getState().posts)
+    .map('userId')
+    .uniq()
+    .forEach(id => dispatch(fetchUser(id)))
+    .value();
+};
+
+
+export const fetchPosts =  () => async dispatch => {
+  const response = await jsonPlaceholder.get('/posts');
+
+  dispatch({
+    type : 'FETCH_POSTS',
+    payload : response.data
+  })
+};
+
+/*=================================================
+
+                        MEMOIZE
+You can fetch a user only one time with this action
+
+==================================================*/
+
+// export const fetchUser = (id) => dispatch => _fetchUser(id, dispatch);
+
+// const _fetchUser = _.memoize(async (id, dispatch) => {
+//   const response = await jsonPlaceholder.get(`/users/${id}`);
+//   dispatch({
+//     type : 'FETCH_USER',
+//     payload : response.data
+//   });
+// });
+
+
+export const fetchUser = id => async dispatch => {
+  const response = await jsonPlaceholder.get(`/users/${id}`);
+
+  dispatch({
+    type : 'FETCH_USER',
+    payload : response.data
+  });
+}
